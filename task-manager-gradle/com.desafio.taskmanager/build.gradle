@@ -1,0 +1,40 @@
+plugins {
+    id 'java'
+    id 'io.quarkus' version '3.10.0'
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    quarkusPlatformVersion = '3.10.0'
+}
+
+dependencies {
+    implementation enforcedPlatform("io.quarkus:quarkus-bom:${quarkusPlatformVersion}")
+
+    implementation 'io.quarkus:quarkus-resteasy-reactive'
+    implementation 'io.quarkus:quarkus-resteasy-reactive-jackson'
+    implementation 'io.quarkus:quarkus-hibernate-orm-panache'
+    implementation 'io.quarkus:quarkus-jdbc-postgresql'
+    implementation 'io.quarkus:quarkus-smallrye-jwt'
+    implementation 'org.mindrot:jbcrypt:0.4'
+
+    implementation 'io.quarkus:quarkus-hibernate-orm-panache'
+    implementation 'io.quarkus:quarkus-jdbc-postgresql'
+    implementation 'io.quarkus:quarkus-resteasy-reactive'
+    implementation 'io.quarkus:quarkus-resteasy-reactive-jackson'
+    implementation 'io.quarkus:quarkus-security'
+
+    testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation 'io.rest-assured:rest-assured'
+}
+
+group = 'com.desafio'
+version = '1.0.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
