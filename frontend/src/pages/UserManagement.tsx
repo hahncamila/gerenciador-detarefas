@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
 	Box,
 	Typography,
@@ -12,26 +11,25 @@ import {
 } from "@mui/material";
 import { Delete } from "@mui/icons-material";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { apiWithAuth } from "../services/authService";
 
 interface User {
 	username: string;
 	id: number;
+	role: string;
 }
 
 const UserManagement = () => {
 	const [users, setUsers] = useState<User[]>([]);
 	useEffect(() => {
-		// apiWithAuth()
-		// 	.get("/users")
-		// 	.then((r) => setUsers(r.data));
-
-		axios.get("http://localhost:8080/users").then((r) => setUsers(r.data));
+		apiWithAuth()
+			.get("/users")
+			.then((r) => setUsers(r.data));
 	}, []);
 
 	const handleDelete = async (id: number) => {
 		try {
-			await axios.delete(`http://localhost:8080/users/${id}`);
+			await apiWithAuth().delete(`/users/${id}`);
 			setUsers((prev) => prev.filter((u) => u.id !== id));
 		} catch (err) {
 			console.error("Erro ao deletar usuário", err);
@@ -49,36 +47,33 @@ const UserManagement = () => {
 				alignItems="center"
 				minHeight="50vh"
 				p={2}>
-				<Paper elevation={3} sx={{ width: "100%", maxWidth: 500, p: 3 }}>
+				<Paper
+					elevation={3}
+					sx={{
+						width: "100%",
+						maxWidth: 500,
+						p: 3,
+						backgroundColor: "#E6E6FA",
+					}}>
 					<Table size="small">
 						<TableHead>
 							<TableRow>
-								<TableCell sx={{ fontWeight: 600, borderBottom: "none" }}>
-									Nome
+								<TableCell sx={{ fontWeight: 600 }}>Nome</TableCell>
+								<TableCell sx={{ fontWeight: 600 }}>Tipo de usuário</TableCell>
+								<TableCell sx={{ fontWeight: 600, textAlign: "right" }}>
+									Remover usuário
 								</TableCell>
 							</TableRow>
 						</TableHead>
 						<TableBody>
 							{users.map((user) => (
-								<TableRow
-									key={user.id}
-									sx={{
-										display: "flex",
-										justifyContent: "space-between",
-										borderBottom: "none",
-									}}>
-									<TableCell
-										sx={{
-											borderBottom: "none",
-										}}>
-										{user.username}
-									</TableCell>
-									<TableCell
-										sx={{
-											borderBottom: "none",
-										}}>
+								<TableRow key={user.id}>
+									<TableCell>{user.username}</TableCell>
+									<TableCell>{user.role}</TableCell>
+
+									<TableCell align="right">
 										<IconButton onClick={() => handleDelete(user.id)}>
-											<Delete />
+											<Delete sx={{ color: "#A020F0" }} />
 										</IconButton>
 									</TableCell>
 								</TableRow>

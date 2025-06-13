@@ -5,6 +5,15 @@
   text-align: center;
 }
 
+.body{
+  background-color: #9370DB;
+}
+
+.MuiTableCell-root {
+	user-select: none;
+	cursor: default;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;

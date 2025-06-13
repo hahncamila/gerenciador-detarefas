@@ -11,8 +11,10 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
+	const navigate = useNavigate();
 	const [tarefas, setTarefas] = useState<any[]>([]);
 	const [statusFiltro, setStatusFiltro] = useState("");
 	const [usuarioFiltro, setUsuarioFiltro] = useState("");
@@ -53,9 +55,8 @@ const Dashboard = () => {
 
 	const formatarData = (dataString: string) => {
 		try {
-			const data = new Date(dataString);
-			if (isNaN(data.getTime())) return "Data inválida";
-			return data.toLocaleDateString("pt-BR");
+			const [ano, mes, dia] = dataString.split("-");
+			return `${dia}/${mes}/${ano}`;
 		} catch {
 			return "Data inválida";
 		}
@@ -66,21 +67,18 @@ const Dashboard = () => {
 		const usuarioMatch = usuarioFiltro
 			? t.responsible?.username === usuarioFiltro
 			: true;
-		const dataMatch = dataFiltro
-			? new Date(t.dueDate).toLocaleDateString() ===
-			  new Date(dataFiltro).toLocaleDateString()
-			: true;
+		const dataMatch = dataFiltro ? t.dueDate === dataFiltro : true;
 
 		return statusMatch && usuarioMatch && dataMatch;
 	});
 
 	return (
-		<Box>
-			<Typography variant="h5" fontWeight={600} gutterBottom>
+		<Box width="100%">
+			<Typography variant="h5" fontWeight={600} gutterBottom mb={6}>
 				Minhas Tarefas
 			</Typography>
 
-			<Box display="flex" gap={2} mb={3}>
+			<Box display="flex" gap={2} mb={3} flexWrap="wrap">
 				<TextField
 					label="Filtrar por status"
 					select
@@ -123,29 +121,111 @@ const Dashboard = () => {
 					sx={{ minWidth: 200 }}
 					InputLabelProps={{ shrink: true }}
 				/>
+
 				<Button
 					variant="contained"
 					onClick={fetchTarefas}
 					sx={{ backgroundColor: "#A020F0", borderRadius: "20px" }}>
 					Filtrar
 				</Button>
+				<Button
+					variant="outlined"
+					onClick={() => {
+						setStatusFiltro("");
+						setUsuarioFiltro("");
+						setDataFiltro("");
+						fetchTarefas();
+					}}
+					sx={{
+						borderRadius: "20px",
+						borderColor: "#A020F0",
+						color: "#A020F0",
+					}}>
+					Limpar filtros
+				</Button>
 			</Box>
 
-			<Grid container spacing={2} mt={2}>
+			<Grid container spacing={2}>
 				{tarefasFiltradas.map((tarefa: any) => (
-					<Grid key={tarefa.id} item xs={12} sm={6} md={4}>
-						<Card>
-							<CardContent>
-								<Typography variant="h6" color="purple">
-									{tarefa.title || "Sem título"}
-								</Typography>
-								<Typography>Status: {traduzirStatus(tarefa.status)}</Typography>
-								<Typography>
-									Responsável: {tarefa.responsible?.username || "Não atribuído"}
-								</Typography>
-								<Typography>
-									Data de entrega: {formatarData(tarefa.dueDate)}
-								</Typography>
+					<Grid key={tarefa.id} item xs={12} width={"100%"}>
+						<Card
+							sx={{
+								backgroundColor: "#E6E6FA",
+								borderRadius: "20px",
+								width: "100%",
+							}}>
+							<CardContent
+								sx={{
+									display: "flex",
+									justifyContent: "space-between",
+									alignItems: "center",
+								}}>
+								<Box>
+									<Typography variant="h5" color="purple">
+										{tarefa.title || "Sem título"}
+									</Typography>
+									<Typography maxWidth={"300px"}>
+										<b>Descrição: </b> {tarefa.description || "Sem descrição"}
+									</Typography>
+									<Typography>
+										<b>Status: </b> {traduzirStatus(tarefa.status)}
+									</Typography>
+									<Typography>
+										<b>Responsável: </b>{" "}
+										{tarefa.responsible?.username || "Não atribuído"}
+									</Typography>
+									<Typography>
+										<b>Data de entrega: </b> {formatarData(tarefa.dueDate)}
+									</Typography>
+								</Box>
+
+								<Box
+									sx={{
+										display: "flex",
+										justifyContent: "flex-end",
+										flexDirection: "column",
+									}}>
+									<Button
+										variant="contained"
+										sx={{
+											mt: 2,
+											backgroundColor: "#A020F0",
+											borderRadius: "20px",
+											height: "40px",
+											ml: 4,
+											mb: 2,
+										}}
+										onClick={() => navigate(`/tasks/${tarefa.id}/edit`)}>
+										Editar tarefa
+									</Button>
+									<Button
+										variant="outlined"
+										sx={{
+											borderRadius: "20px",
+											height: "40px",
+											borderColor: "#A020F0",
+											color: "#A020F0",
+										}}
+										onClick={async () => {
+											if (
+												window.confirm(
+													`Tem certeza que deseja excluir a tarefa "${tarefa.title}"?`
+												)
+											) {
+												try {
+													await axios.delete(
+														`http://localhost:8080/tasks/${tarefa.id}`
+													);
+													fetchTarefas();
+												} catch (error) {
+													console.error("Erro ao excluir tarefa", error);
+													alert("Erro ao excluir tarefa");
+												}
+											}
+										}}>
+										Excluir tarefa
+									</Button>
+								</Box>
 							</CardContent>
 						</Card>
 					</Grid>

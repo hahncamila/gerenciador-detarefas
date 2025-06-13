@@ -1,8 +1,7 @@
 import { Box, Button, TextField, Typography, MenuItem } from "@mui/material";
 import { useEffect, useState } from "react";
-// import { apiWithAuth, register } from "../services/authService";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 interface User {
 	username: string;
@@ -11,6 +10,8 @@ interface User {
 
 const TaskForm = () => {
 	const navigate = useNavigate();
+	const { id } = useParams<{ id: string }>();
+
 	const [users, setUsers] = useState<User[]>([]);
 	const [form, setForm] = useState({
 		title: "",
@@ -20,32 +21,40 @@ const TaskForm = () => {
 		dueDate: "",
 	});
 
-	// const [isAdmin, setIsAdmin] = useState("");
-	// const [username] = useState("");
-	// const [password] = useState("");
-
-	// register(username, password, ["ADMIN"]).then((isAdmin) => {
-	// 	setIsAdmin(isAdmin);
-	// });
-
 	useEffect(() => {
-		// apiWithAuth()
-		// 	.get("/users")
-		// 	.then((r) => setUsers(r.data));
-
+		// Busca usuários
 		axios.get("http://localhost:8080/users").then((r) => setUsers(r.data));
-	}, []);
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const handleChange = (e: any) => {
+		// Se tiver ID, busca os dados da tarefa para edição
+		if (id) {
+			axios.get(`http://localhost:8080/tasks/${id}`).then((r) => {
+				const task = r.data;
+				setForm({
+					title: task.title || "",
+					description: task.description || "",
+					status: task.status || "PENDING",
+					responsibleId: task.responsible?.id || "",
+					dueDate: task.dueDate?.split("T")[0] || "",
+				});
+			});
+		}
+	}, [id]);
+
+	const handleChange = (
+		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+	) => {
 		setForm({ ...form, [e.target.name]: e.target.value });
 	};
 
 	const handleSubmit = async () => {
 		try {
-			// await apiWithAuth().post("/tasks", form);
-			await axios.post("http://localhost:8080/tasks", form);
-			alert("Tarefa salva com sucesso!");
+			if (id) {
+				await axios.put(`http://localhost:8080/tasks/${id}`, form);
+				alert("Tarefa atualizada com sucesso!");
+			} else {
+				await axios.post("http://localhost:8080/tasks", form);
+				alert("Tarefa criada com sucesso!");
+			}
 			navigate("/dashboard");
 		} catch (err) {
 			console.error("Erro ao salvar tarefa", err);
@@ -55,8 +64,9 @@ const TaskForm = () => {
 	return (
 		<Box maxWidth={600}>
 			<Typography variant="h5" fontWeight={600} gutterBottom>
-				Criar ou Editar Tarefa
+				{id ? "Editar Tarefa" : "Criar Tarefa"}
 			</Typography>
+
 			<TextField
 				name="title"
 				label="Título"
@@ -67,6 +77,7 @@ const TaskForm = () => {
 				value={form.title}
 				onChange={handleChange}
 			/>
+
 			<TextField
 				name="description"
 				label="Descrição"
@@ -79,6 +90,7 @@ const TaskForm = () => {
 				value={form.description}
 				onChange={handleChange}
 			/>
+
 			<TextField
 				name="status"
 				label="Status"
@@ -122,11 +134,12 @@ const TaskForm = () => {
 				value={form.dueDate}
 				onChange={handleChange}
 			/>
+
 			<Button
 				variant="contained"
 				sx={{ mt: 2, backgroundColor: "#A020F0", borderRadius: "20px" }}
 				onClick={handleSubmit}>
-				Salvar
+				{id ? "Atualizar" : "Salvar"}
 			</Button>
 		</Box>
 	);
