@@ -14,8 +14,17 @@ const MainLayout = () => {
 	return (
 		<>
 			<AppBar position="static">
-				<Toolbar sx={{ flexGrow: 1, backgroundColor: "#A020F0", gap: 2 }}>
-					<Typography variant="h6" sx={{ flexGrow: 1, fontWeight: "bold" }}>
+				<Toolbar
+					sx={{
+						flexGrow: 1,
+						backgroundColor: "purple",
+						gap: 2,
+						height: "90px",
+					}}>
+					<Typography
+						variant="h6"
+						textTransform={"uppercase"}
+						sx={{ flexGrow: 1, fontWeight: "bold" }}>
 						Gerenciador de Tarefas
 					</Typography>
 					<Button

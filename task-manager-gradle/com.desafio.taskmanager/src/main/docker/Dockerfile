@@ -1,13 +1,15 @@
-FROM quay.io/quarkus/quarkus-micro-image:2.0
+FROM eclipse-temurin:17-jre
 
 WORKDIR /work/
-COPY build/quarkus-app/*.jar /work/
-COPY build/quarkus-app/app/ /work/app/
-COPY build/quarkus-app/lib/boot/ /work/lib/
-COPY build/quarkus-app/lib/main/ /work/lib/
-COPY build/quarkus-app/quarkus/ /work/quarkus/
+
+COPY com.desafio.taskmanager/build/quarkus-app/lib/ /work/lib/
+COPY com.desafio.taskmanager/build/quarkus-app/app/ /work/app/
+COPY com.desafio.taskmanager/build/quarkus-app/quarkus/ /work/quarkus/
+COPY com.desafio.taskmanager/build/quarkus-app/quarkus-run.jar /work/
 
 ENV JAVA_OPTS="-Dquarkus.http.host=0.0.0.0"
 
-# Usar shell para expandir o coringa *
-CMD sh -c "java -jar /work/*-runner.jar"
+EXPOSE 8080
+
+CMD ["java", "-jar", "/work/quarkus-run.jar"]
+

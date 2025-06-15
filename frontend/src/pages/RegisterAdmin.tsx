@@ -33,7 +33,15 @@ const RegisterAdmin = () => {
 
 	return (
 		<Box maxWidth={400} mx="auto" mt={10}>
-			<Typography variant="h4" gutterBottom>
+			<Typography
+				variant="h5"
+				fontWeight={600}
+				gutterBottom
+				mb={6}
+				textTransform={"uppercase"}
+				color="purple"
+				letterSpacing={2}
+				textAlign="center">
 				Registrar Admin
 			</Typography>
 
@@ -78,7 +86,7 @@ const RegisterAdmin = () => {
 					variant="contained"
 					fullWidth
 					disabled={loading}
-					sx={{ mt: 2, backgroundColor: "#A020F0", borderRadius: "20px" }}
+					sx={{ mt: 2, backgroundColor: "purple", borderRadius: "20px" }}
 					type="submit">
 					{loading ? "Registrando…" : "Registrar Admin"}
 				</Button>
@@ -88,7 +96,7 @@ const RegisterAdmin = () => {
 					fullWidth
 					sx={{
 						mt: 2,
-						backgroundColor: "#A020F0",
+						backgroundColor: "purple",
 						borderRadius: "20px",
 						color: "white",
 					}}

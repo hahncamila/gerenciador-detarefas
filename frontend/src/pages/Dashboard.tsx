@@ -2,7 +2,6 @@
 import {
 	Box,
 	Typography,
-	Grid,
 	Card,
 	CardContent,
 	TextField,
@@ -12,6 +11,7 @@ import {
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { isAdmin } from "../services/authUtils";
 
 const Dashboard = () => {
 	const navigate = useNavigate();
@@ -19,8 +19,19 @@ const Dashboard = () => {
 	const [statusFiltro, setStatusFiltro] = useState("");
 	const [usuarioFiltro, setUsuarioFiltro] = useState("");
 	const [dataFiltro, setDataFiltro] = useState("");
+	const [admin, setAdmin] = useState(false);
 
-	const fetchTarefas = async () => {
+	useEffect(() => {
+		const checkAdminAndFetch = async () => {
+			const adminStatus = isAdmin();
+			setAdmin(adminStatus);
+			await fetchTarefas(adminStatus);
+		};
+
+		checkAdminAndFetch();
+	}, []);
+
+	const fetchTarefas = async (adminStatus = admin) => {
 		try {
 			const params: any = {};
 			if (statusFiltro) params.status = statusFiltro;
@@ -28,15 +39,21 @@ const Dashboard = () => {
 			if (dataFiltro) params.dueDate = dataFiltro;
 
 			const res = await axios.get("http://localhost:8080/tasks", { params });
-			setTarefas(res.data);
+
+			const token = localStorage.getItem("token");
+			const base64Payload = token?.split(".")[1];
+			const payload = base64Payload ? JSON.parse(atob(base64Payload)) : null;
+			const username = payload?.upn;
+
+			const tarefasFiltradas = adminStatus
+				? res.data
+				: res.data.filter((t: any) => t.responsible?.username === username);
+
+			setTarefas(tarefasFiltradas);
 		} catch (err) {
 			console.error("Erro ao buscar tarefas", err);
 		}
 	};
-
-	useEffect(() => {
-		fetchTarefas();
-	}, []);
 
 	const traduzirStatus = (status: string) => {
 		switch (status) {
@@ -46,8 +63,6 @@ const Dashboard = () => {
 				return "Em andamento";
 			case "COMPLETED":
 				return "Concluída";
-			case "CANCELLED":
-				return "Cancelada";
 			default:
 				return status;
 		}
@@ -74,7 +89,15 @@ const Dashboard = () => {
 
 	return (
 		<Box width="100%">
-			<Typography variant="h5" fontWeight={600} gutterBottom mb={6}>
+			<Typography
+				variant="h5"
+				fontWeight={600}
+				gutterBottom
+				mb={6}
+				textTransform={"uppercase"}
+				color="purple"
+				letterSpacing={2}
+				textAlign="center">
 				Minhas Tarefas
 			</Typography>
 
@@ -90,27 +113,28 @@ const Dashboard = () => {
 					<MenuItem value="PENDING">Pendente</MenuItem>
 					<MenuItem value="IN_PROGRESS">Em andamento</MenuItem>
 					<MenuItem value="COMPLETED">Concluída</MenuItem>
-					<MenuItem value="CANCELLED">Cancelada</MenuItem>
 				</TextField>
 
-				<TextField
-					label="Filtrar por usuário"
-					select
-					size="small"
-					value={usuarioFiltro}
-					onChange={(e) => setUsuarioFiltro(e.target.value)}
-					sx={{ minWidth: 200 }}>
-					<MenuItem value="">Todos</MenuItem>
-					{[
-						...new Set(
-							tarefas.map((t) => t.responsible?.username).filter(Boolean)
-						),
-					].map((username) => (
-						<MenuItem key={username} value={username}>
-							{username}
-						</MenuItem>
-					))}
-				</TextField>
+				{admin && (
+					<TextField
+						label="Filtrar por usuário"
+						select
+						size="small"
+						value={usuarioFiltro}
+						onChange={(e) => setUsuarioFiltro(e.target.value)}
+						sx={{ minWidth: 200 }}>
+						<MenuItem value="">Todos</MenuItem>
+						{[
+							...new Set(
+								tarefas.map((t) => t.responsible?.username).filter(Boolean)
+							),
+						].map((username) => (
+							<MenuItem key={username} value={username}>
+								{username}
+							</MenuItem>
+						))}
+					</TextField>
+				)}
 
 				<TextField
 					label="Filtrar por data de entrega"
@@ -124,8 +148,8 @@ const Dashboard = () => {
 
 				<Button
 					variant="contained"
-					onClick={fetchTarefas}
-					sx={{ backgroundColor: "#A020F0", borderRadius: "20px" }}>
+					onClick={() => fetchTarefas()}
+					sx={{ backgroundColor: "purple", borderRadius: "20px" }}>
 					Filtrar
 				</Button>
 				<Button
@@ -138,99 +162,99 @@ const Dashboard = () => {
 					}}
 					sx={{
 						borderRadius: "20px",
-						borderColor: "#A020F0",
-						color: "#A020F0",
+						borderColor: "purple",
+						color: "purple",
 					}}>
 					Limpar filtros
 				</Button>
 			</Box>
 
-			<Grid container spacing={2}>
+			<Box display="flex" flexDirection="column" gap={2} mb={2}>
 				{tarefasFiltradas.map((tarefa: any) => (
-					<Grid key={tarefa.id} item xs={12} width={"100%"}>
-						<Card
+					<Card
+						key={tarefa.id}
+						sx={{
+							backgroundColor: "#DCDCDC",
+							borderRadius: "20px",
+							width: "100%",
+						}}>
+						<CardContent
 							sx={{
-								backgroundColor: "#E6E6FA",
-								borderRadius: "20px",
-								width: "100%",
+								display: "flex",
+								justifyContent: "space-between",
+								alignItems: "center",
+								flexWrap: "wrap",
 							}}>
-							<CardContent
+							<Box>
+								<Typography variant="h5" color="purple">
+									{tarefa.title || "Sem título"}
+								</Typography>
+								<Typography maxWidth={"300px"}>
+									<b>Descrição: </b> {tarefa.description || "Sem descrição"}
+								</Typography>
+								<Typography>
+									<b>Status: </b> {traduzirStatus(tarefa.status)}
+								</Typography>
+								<Typography>
+									<b>Responsável: </b>{" "}
+									{tarefa.responsible?.username || "Não atribuído"}
+								</Typography>
+								<Typography>
+									<b>Data de entrega: </b> {formatarData(tarefa.dueDate)}
+								</Typography>
+							</Box>
+
+							<Box
 								sx={{
 									display: "flex",
-									justifyContent: "space-between",
-									alignItems: "center",
+									justifyContent: "flex-end",
+									flexDirection: "column",
 								}}>
-								<Box>
-									<Typography variant="h5" color="purple">
-										{tarefa.title || "Sem título"}
-									</Typography>
-									<Typography maxWidth={"300px"}>
-										<b>Descrição: </b> {tarefa.description || "Sem descrição"}
-									</Typography>
-									<Typography>
-										<b>Status: </b> {traduzirStatus(tarefa.status)}
-									</Typography>
-									<Typography>
-										<b>Responsável: </b>{" "}
-										{tarefa.responsible?.username || "Não atribuído"}
-									</Typography>
-									<Typography>
-										<b>Data de entrega: </b> {formatarData(tarefa.dueDate)}
-									</Typography>
-								</Box>
-
-								<Box
+								<Button
+									variant="contained"
 									sx={{
-										display: "flex",
-										justifyContent: "flex-end",
-										flexDirection: "column",
-									}}>
-									<Button
-										variant="contained"
-										sx={{
-											mt: 2,
-											backgroundColor: "#A020F0",
-											borderRadius: "20px",
-											height: "40px",
-											ml: 4,
-											mb: 2,
-										}}
-										onClick={() => navigate(`/tasks/${tarefa.id}/edit`)}>
-										Editar tarefa
-									</Button>
-									<Button
-										variant="outlined"
-										sx={{
-											borderRadius: "20px",
-											height: "40px",
-											borderColor: "#A020F0",
-											color: "#A020F0",
-										}}
-										onClick={async () => {
-											if (
-												window.confirm(
-													`Tem certeza que deseja excluir a tarefa "${tarefa.title}"?`
-												)
-											) {
-												try {
-													await axios.delete(
-														`http://localhost:8080/tasks/${tarefa.id}`
-													);
-													fetchTarefas();
-												} catch (error) {
-													console.error("Erro ao excluir tarefa", error);
-													alert("Erro ao excluir tarefa");
-												}
+										mt: 2,
+										backgroundColor: "purple",
+										borderRadius: "20px",
+										height: "40px",
+										ml: 4,
+										mb: 2,
+									}}
+									onClick={() => navigate(`/tasks/${tarefa.id}/edit`)}>
+									Editar tarefa
+								</Button>
+								<Button
+									variant="outlined"
+									sx={{
+										borderRadius: "20px",
+										height: "40px",
+										borderColor: "purple",
+										color: "purple",
+									}}
+									onClick={async () => {
+										if (
+											window.confirm(
+												`Tem certeza que deseja excluir a tarefa "${tarefa.title}"?`
+											)
+										) {
+											try {
+												await axios.delete(
+													`http://localhost:8080/tasks/${tarefa.id}`
+												);
+												fetchTarefas();
+											} catch (error) {
+												console.error("Erro ao excluir tarefa", error);
+												alert("Erro ao excluir tarefa");
 											}
-										}}>
-										Excluir tarefa
-									</Button>
-								</Box>
-							</CardContent>
-						</Card>
-					</Grid>
+										}
+									}}>
+									Excluir tarefa
+								</Button>
+							</Box>
+						</CardContent>
+					</Card>
 				))}
-			</Grid>
+			</Box>
 		</Box>
 	);
 };
