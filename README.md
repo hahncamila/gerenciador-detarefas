@@ -4,24 +4,25 @@ A aplicação é dockerizada com Docker Compose.
 
 Tecnologias
 
--Backend: Java, Quarkus, Hibernate ORM Panache, JPA, PostgreSQL
--Frontend: React, TypeScript, Material UI (MUI)
--Infraestrutura: Docker, Docker Compose
--Autenticação: JWT (não funcional no momento)
+-Backend: Java, Quarkus, Hibernate ORM Panache, JPA, PostgreSQL <br>
+-Frontend: React, TypeScript, Material UI (MUI) <br>
+-Infraestrutura: Docker, Docker Compose <br>
+-Autenticação: JWT (não funcional no momento) <br>
 
 
 Estrutura do Projeto
 
-/task-manager-gradle — Código fonte do backend Quarkus
-/frontend — Código fonte do frontend React
-docker-compose.yml — Configuração dos containers Docker
+/task-manager-gradle — Código fonte do backend Quarkus <br>
+/frontend — Código fonte do frontend React <br>
+docker-compose.yml — Configuração dos containers Docker <br>
 
 
 Como rodar o projeto localmente
 
 Pré-requisitos
--Docker e Docker Compose instalados
--Java 17 instalado localmente para buildar o backend - Opcional
+-Docker e Docker Compose instalados <br>
+-Java 17 instalado localmente para buildar o backend - Opcional <br>
 
 -Clonar o repositório
--Buildar e subir os containers: docker-compose up --build
+-Buildar e subir os containers: docker-compose up --build <br>
+
